@@ -1,0 +1,120 @@
+{
+  "kind": "build_request",
+  "title": "Remove sign-in and access-code gating so the app loads without authentication",
+  "priority": "high",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "Remove the Internet Identity login requirement from the app bootstrap so the application can load and all routes can be accessed without signing in.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "Unable to load application even after signout. Remove the signin part completly"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Opening the app in a fresh browser session never shows the Internet Identity login screen and does not require any sign-in to reach the dashboard/pages.",
+        "Navigating directly to any existing route (e.g. /patients, /settings) works without redirecting to /login.",
+        "No user-facing copy mentions “Sign In with Internet Identity” anywhere in the UI."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Remove the dashboard access-code gate flow so that access-code verification is not required to view or use the app (including removing the AccessCodeGate UI from the routing/bootstrap path).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "Remove the signin part completly"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The access code screen is never shown during normal app usage.",
+        "No code path blocks rendering AppShell/pages based on sessionStorage keys dashboardAccessVerified/dashboardAccessTimestamp.",
+        "The app still renders successfully even if sessionStorage contains old access-code keys from previous versions."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Update navigation and recovery UI to remove sign-out actions that depend on authentication; replace them with a session reset action that clears local bootstrap/access-related state and reloads the app.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "Unable to load application even after signout. Remove the signin part completly"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The sidebar no longer shows a “Sign Out” button.",
+        "Bootstrap recovery UI no longer attempts to call Internet Identity logout; it provides working actions to Retry and Reload, plus a Reset Session action that clears React Query caches and relevant sessionStorage keys before reloading.",
+        "Clicking Reset Session from the recovery screen results in the app attempting a clean reload without requiring sign-in."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Remove or disable frontend features that require an authenticated “current user” context (e.g., current user profile/role queries and profile setup modal) so the app does not get stuck bootstrapping due to missing authentication.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "Remove the signin part completly"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The app does not call getCallerUserProfile/getCallerUserRole as part of required bootstrap gating to render the main UI.",
+        "The profile setup modal does not block or appear on first load when the user is not authenticated.",
+        "The app’s main pages (Dashboard, Patients, Tracking, Feedback, Analytics, Settings) render and function without any current-user identity."
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Remove backend-side authorization/sign-in enforcement that prevents anonymous users from calling the existing read/write APIs, so the frontend can operate without Internet Identity.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "Remove the signin part completly"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Anonymous callers can successfully invoke the backend APIs used by the existing pages (read and write) without receiving authorization errors.",
+        "The app can create, update, and list records end-to-end without Internet Identity login.",
+        "No backend API used by the UI requires access-code validation to succeed."
+      ]
+    }
+  ],
+  "constraints": [
+    "Frontend immutable paths must not be modified: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui/*.",
+    "Backend must remain a single-actor Motoko architecture with logic in backend/main.mo; only add backend/migration.mo if state upgrade is required."
+  ],
+  "nonGoals": [
+    "Implementing a new authentication mechanism to replace Internet Identity.",
+    "Adding role-based access control or reintroducing access-code gating in another form.",
+    "Creating multi-user data isolation; after removing auth, data is effectively shared for all users unless otherwise specified."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
+  }
+}

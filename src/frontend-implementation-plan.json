@@ -1,0 +1,121 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Remove authentication and access-code gating from frontend bootstrap",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "summary": "Remove Internet Identity login gating so the app loads and routes are accessible without sign-in.",
+      "acceptanceCriteria": [
+        "Opening the app in a fresh browser session never shows the Internet Identity login screen and does not require any sign-in to reach the dashboard/pages.",
+        "Navigating directly to any existing route (e.g. /patients, /settings) works without redirecting to /login.",
+        "No user-facing copy mentions “Sign In with Internet Identity” anywhere in the UI."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Remove auth-based bootstrap gating and redirects (no identity checks, no /login redirect), and remove the /login route registration so all existing routes render without sign-in."
+        },
+        {
+          "path": "frontend/src/pages/auth/LoginPage.tsx",
+          "operation": "delete",
+          "description": "Remove the Internet Identity login screen to ensure it is never shown and no UI copy references Internet Identity sign-in."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Remove the dashboard access-code gate so access-code verification never blocks rendering AppShell/pages.",
+      "acceptanceCriteria": [
+        "The access code screen is never shown during normal app usage.",
+        "No code path blocks rendering AppShell/pages based on sessionStorage keys dashboardAccessVerified/dashboardAccessTimestamp.",
+        "The app still renders successfully even if sessionStorage contains old access-code keys from previous versions."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Remove AccessCodeGate and any dashboard access verification checks from the bootstrap/routing path so AppShell/pages always render."
+        },
+        {
+          "path": "frontend/src/components/auth/AccessCodeGate.tsx",
+          "operation": "delete",
+          "description": "Remove the AccessCodeGate UI and related access-code verification flow so it cannot appear in the app."
+        },
+        {
+          "path": "frontend/src/hooks/useDashboardAccess.ts",
+          "operation": "delete",
+          "description": "Remove the dashboard access verification hook to eliminate any sessionStorage-based gating logic."
+        },
+        {
+          "path": "frontend/src/utils/bootstrapReset.ts",
+          "operation": "modify",
+          "description": "Ensure reset utilities still clear legacy access-code sessionStorage keys (dashboardAccessVerified/dashboardAccessTimestamp) so old keys never impact app rendering."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Replace sign-out actions with a session reset action that clears local state/caches and reloads the app.",
+      "acceptanceCriteria": [
+        "The sidebar no longer shows a “Sign Out” button.",
+        "Bootstrap recovery UI no longer attempts to call Internet Identity logout; it provides working actions to Retry and Reload, plus a Reset Session action that clears React Query caches and relevant sessionStorage keys before reloading.",
+        "Clicking Reset Session from the recovery screen results in the app attempting a clean reload without requiring sign-in."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/shell/Sidebar.tsx",
+          "operation": "modify",
+          "description": "Remove the “Sign Out” UI and replace it with a “Reset Session” action that clears React Query caches and relevant sessionStorage bootstrap/access keys, then reloads the app."
+        },
+        {
+          "path": "frontend/src/components/bootstrap/BootstrapRecoveryScreen.tsx",
+          "operation": "modify",
+          "description": "Replace the “Sign Out” action with “Reset Session” and update labels/copy so recovery actions are Retry, Reset Session, and Reload (no Internet Identity logout)."
+        },
+        {
+          "path": "frontend/src/components/bootstrap/RouterRecoveryBoundary.tsx",
+          "operation": "modify",
+          "description": "Update wiring for BootstrapRecoveryScreen props to remove onSignOut usage and provide a working onResetSession handler that clears React Query caches + relevant sessionStorage keys before reloading."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Update any bootstrap recovery screen usage to remove Internet Identity logout/sign-out behavior and wire Reset Session functionality consistently."
+        },
+        {
+          "path": "frontend/src/utils/bootstrapReset.ts",
+          "operation": "modify",
+          "description": "Add/adjust a shared session reset helper that clears React Query caches and relevant sessionStorage keys (including legacy access-code keys) and supports a clean reload."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Disable/remove current-user-dependent bootstrap features so the app does not block on profile/role queries or profile setup.",
+      "acceptanceCriteria": [
+        "The app does not call getCallerUserProfile/getCallerUserRole as part of required bootstrap gating to render the main UI.",
+        "The profile setup modal does not block or appear on first load when the user is not authenticated.",
+        "The app’s main pages (Dashboard, Patients, Tracking, Feedback, Analytics, Settings) render and function without any current-user identity."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Remove current-user bootstrap dependencies (stop calling useGetCallerUserProfile for required bootstrap flow) and remove ProfileSetupModal gating so main UI renders without any identity."
+        },
+        {
+          "path": "frontend/src/components/auth/ProfileSetupModal.tsx",
+          "operation": "delete",
+          "description": "Remove the profile setup modal so it cannot block or appear on first load without authentication."
+        },
+        {
+          "path": "frontend/src/components/shell/Sidebar.tsx",
+          "operation": "modify",
+          "description": "Remove current user profile/role queries and any identity-derived UI (name/role) so the sidebar renders without requiring a current-user context."
+        }
+      ]
+    }
+  ]
+}

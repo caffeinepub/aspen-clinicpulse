@@ -1,0 +1,92 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-09T02:38:16.930Z",
+  "summary": "The diff removes some access-code gating and replaces “Sign Out” with “Reset Session” in the sidebar/recovery UI, but it still includes (and even emphasizes) authentication-related code/UI (Internet Identity login page, session-auth hook), modifies frontend files that were constrained as immutable, and the backend appears to add/keep authorization machinery rather than removing it. Multiple REQs are therefore not fully met, and several unrequested/auth-related features appear to be introduced or retained.",
+  "missing_requirements": [
+    {
+      "id": "REQ-1",
+      "requirement": "Remove the Internet Identity login requirement so the app loads and all routes can be accessed without signing in; no UI copy mentions “Sign In with Internet Identity”.",
+      "reason": "A LoginPage still exists and is explicitly described as having an Internet Identity sign-in button, which violates the AC that the app never shows an Internet Identity login screen and no copy mentions it. The diff summary does not show removal of login routing/redirection behavior either (only App.tsx routing is shown, but existence of LoginPage contradicts full removal).",
+      "evidence": [
+        "frontend/src/pages/auth/LoginPage.tsx",
+        "frontend-file-summaries.txt"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "requirement": "Remove/disable frontend features that require an authenticated current-user context (e.g., user profile/role queries, profile setup modal) so bootstrap/main UI doesn’t depend on authentication.",
+      "reason": "The diff shows user/role concepts still present in query hooks (UserProfile/UserRole) and SettingsPage still depends on an admin check (useIsCallerAdmin). ProfileSetupModal also still exists as a component file, and there’s no clear evidence it was fully removed/disabled from blocking flows.",
+      "evidence": [
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/SettingsPage.tsx",
+        "frontend/src/components/auth/ProfileSetupModal.tsx"
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "requirement": "Remove backend-side authorization/sign-in enforcement so anonymous callers can call existing read/write APIs without authorization/access-code validation requirements.",
+      "reason": "backend/main.mo includes authorization-related modules (MixinAuthorization, AccessControl) and initializes authorization state; the diff does not show removal of enforcement. This is the opposite direction of REQ-5 based on the available summary.",
+      "evidence": [
+        "backend/main.mo"
+      ]
+    }
+  ],
+  "hallucinated_features": [
+    {
+      "description": "Introduced/retained a session-based authentication hook using admin tokens stored in sessionStorage (a new/alternative authentication mechanism).",
+      "reason": "BuildRequest non-goals explicitly forbid implementing a new authentication mechanism to replace Internet Identity. The diff summary indicates a new/modified hook providing session-based authentication with admin tokens.",
+      "evidence": [
+        "frontend-file-summaries.txt (mentions frontend/src/hooks/useSessionAuth.ts)"
+      ]
+    },
+    {
+      "description": "Internet Identity login UI retained/added via a dedicated LoginPage with an Internet Identity sign-in button.",
+      "reason": "REQ-1 requires removing the Internet Identity login requirement and any UI mention of it. Keeping/adding a LoginPage with an Internet Identity sign-in button is an unrequested and conflicting feature.",
+      "evidence": [
+        "frontend/src/pages/auth/LoginPage.tsx",
+        "frontend-file-summaries.txt"
+      ]
+    },
+    {
+      "description": "Backend authorization framework wiring (AccessControl state + MixinAuthorization include).",
+      "reason": "REQ-5 requests removing backend-side authorization enforcement for anonymous access. Adding/keeping explicit authorization mixins/state is not requested and appears to conflict with the goal.",
+      "evidence": [
+        "backend/main.mo"
+      ]
+    },
+    {
+      "description": "Non-auth-related UI/feature enhancements (e.g., enhanced ZonalAnalyticsPage with new sections and styling; hygiene-due patients hook; WhatsApp utilities; extensive theme/CSS changes).",
+      "reason": "Not requested by the BuildRequest, which is narrowly about removing authentication/access-code gating. These changes are extra scope unrelated to the stated requirements.",
+      "evidence": [
+        "frontend-file-summaries.txt (mentions frontend/src/pages/ZonalAnalyticsPage.tsx, frontend/src/hooks/useHygieneDuePatients.ts, frontend/src/utils/whatsapp.ts, frontend/src/index.css)"
+      ]
+    },
+    {
+      "description": "Modified frontend files that were declared immutable by constraints (e.g., useActor.ts).",
+      "reason": "BuildRequest constraints state certain frontend paths must not be modified, but the diff indicates changes in at least frontend/src/hooks/useActor.ts.",
+      "evidence": [
+        "frontend-file-summaries.txt (mentions frontend/src/hooks/useActor.ts)"
+      ]
+    }
+  ],
+  "confidence": 0.78,
+  "changed_files": [
+    "backend/main.mo",
+    "backend/migration.mo",
+    "frontend-file-summaries.txt",
+    "frontend/src/App.tsx",
+    "frontend/src/components/auth/AccessCodeGate.tsx",
+    "frontend/src/components/auth/ProfileSetupModal.tsx",
+    "frontend/src/components/bootstrap/BootstrapRecoveryScreen.tsx",
+    "frontend/src/components/bootstrap/RouterRecoveryBoundary.tsx",
+    "frontend/src/components/shell/Sidebar.tsx",
+    "frontend/src/hooks/useDashboardAccess.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/SettingsPage.tsx",
+    "frontend/src/pages/auth/LoginPage.tsx",
+    "frontend/src/utils/bootstrapReset.ts",
+    "frontend/src/utils/urlParams.ts",
+    "project_state.json"
+  ]
+}

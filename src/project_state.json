@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 3,
+  "summary": "App draft has login/session loading issues; user requests removing the sign-in/access-code gate entirely to avoid blocked access.",
+  "architectural_notes": [
+    "Authentication/sign-in gate (dashboard access code) should be removed per user request; app should be accessible without session-based login."
+  ],
+  "known_issues": [
+    "App may fail to load even after sign out due to stale/invalid browser session after updates/redeploys."
+  ],
+  "isFixRequest": true,
+  "existing_features": [
+    {
+      "id": "feature-remove-the-internet-identity-login-requirement-from-the-app-bootstrap-so-the-application-can-load-and-all-routes-can-be-accessed-without-signing-in",
+      "title": "Remove the Internet Identity login requirement from the app bootstrap so the application can load and all routes can be accessed without signing in.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-the-dashboard-access-code-gate-flow-so-that-access-code-verification-is-not-required-to-view-or-use-the-app-including-removing-the-accesscodegate-ui-from-the-routing-bootstrap-path",
+      "title": "Remove the dashboard access-code gate flow so that access-code verification is not required to view or use the app (including removing the AccessCodeGate UI from the routing/bootstrap path).",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-navigation-and-recovery-ui-to-remove-sign-out-actions-that-depend-on-authentication-replace-them-with-a-session-reset-action-that-clears-local-bootstrap-access-related-state-and-reloads-the-app",
+      "title": "Update navigation and recovery UI to remove sign-out actions that depend on authentication; replace them with a session reset action that clears local bootstrap/access-related state and reloads the app.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-or-disable-frontend-features-that-require-an-authenticated-current-user-context-e-g-current-user-profile-role-queries-and-profile-setup-modal-so-the-app-does-not-get-stuck-bootstrapping-due-to-missing-authentication",
+      "title": "Remove or disable frontend features that require an authenticated “current user” context (e.g., current user profile/role queries and profile setup modal) so the app does not get stuck bootstrapping due to missing authentication.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Remove sign-in/access-code flow entirely (no authentication gate) to allow app to load without login/session checks.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Remove backend-side authorization/sign-in enforcement that prevents anonymous users from calling the existing read/write APIs, so the frontend can operate without Internet Identity.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "status": "pending"
+    }
+  ],
+  "projectName": "Remove sign-in and access-code gating so the app loads without authentication",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

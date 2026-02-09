@@ -1,2 +1,3 @@
-# aspen-clinicpulse
-Exported from Caffeine project: Remove sign-in and access-code gating so the app loads without authentication
+## 
+
+To run app build and run docker image: `docker build -t app . docker run -it --network host app`
